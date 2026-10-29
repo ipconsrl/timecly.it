@@ -2,8 +2,19 @@
 	# TLS is handled by Cloudflare at the edge
 	auto_https off
 	admin off
+	servers {
+		# cloudflared runs on the host: keep its X-Forwarded-* headers (proto=https)
+		trusted_proxies static private_ranges
+	}
 }
 
+# Chatwoot (unified inbox)
+http://app.timecly.it {
+	header -Server
+	reverse_proxy chatwoot:3000
+}
+
+# Everything else: placeholder site
 :80 {
 	header -Server
 	root * /srv/site

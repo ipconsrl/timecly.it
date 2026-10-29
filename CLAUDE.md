@@ -28,9 +28,9 @@ Problema che risolve: le app tipo Treatwell gestiscono l'agenda ma non telefono,
   - **Pubblicazione web: Cloudflare Tunnel, attivo dal 2026-10-29.** DNS di timecly.it su Cloudflare (nameserver `angela`/`khalid.ns.cloudflare.com`). Tunnel `timecly-nuc` (id `67dfff8e-1c48-45f0-95c0-fcbb068ad0ab`), locally-managed: config `/etc/cloudflared/config.yml`, credenziali in `/etc/cloudflared/<id>.json`, servizio systemd `cloudflared`. CNAME verso il tunnel: `timecly.it`, `www.timecly.it`, `*.timecly.it`. Tutto il traffico va a `http://127.0.0.1:8080` (Caddy), che smista per nome host.
   - Per aggiungere un record: `cloudflared tunnel route dns [--overwrite-dns] timecly-nuc <host>` come utente `timecly` (cert in `~/.cloudflared/cert.pem`).
   - MX `mail.register.it` lasciato invariato (email del dominio su Register.it).
-  - **Non pubblicare Chatwoot** finché non esiste il super admin: la pagina di onboarding permetterebbe a chiunque di crearlo.
+  - Caddy smista per host: `app.timecly.it` → Chatwoot (`chatwoot:3000`, alias sulla rete `timecly-edge`), tutto il resto → pagina provvisoria. `trusted_proxies private_ranges` per mantenere `X-Forwarded-Proto: https` da cloudflared.
   - Il SIP non passa dal tunnel: servirà un inoltro su pfSense con porte non standard, limitato agli IP dell'operatore VoIP.
-- **Chatwoot v4.19.1** (`infra/chatwoot/`, progetto compose `timecly-chatwoot`): rails, sidekiq, postgres (pgvector pg16), redis. Raggiungibile **solo in LAN** su `http://10.10.25.114:3000`. Segreti generati sul NUC in `/opt/timecly/infra/chatwoot/.env` (chmod 600, mai nel repo; modello in `.env.example`). Registrazioni pubbliche disattivate, lingua it. SMTP ancora da configurare. Consumo a riposo ~0.9 GB RAM, CPU quasi zero. Il rails è anche sulla rete `timecly-edge` per essere servito da Caddy.
+- **Chatwoot v4.19.1** (`infra/chatwoot/`, progetto compose `timecly-chatwoot`): rails, sidekiq, postgres (pgvector pg16), redis. Pubblico su **`https://app.timecly.it`** (FRONTEND_URL) e ancora raggiungibile in LAN su `http://10.10.25.114:3000`. Segreti generati sul NUC in `/opt/timecly/infra/chatwoot/.env` (chmod 600, mai nel repo; modello in `.env.example`). Registrazioni pubbliche disattivate, lingua it. SMTP ancora da configurare. Consumo a riposo ~0.9 GB RAM, CPU quasi zero. Il rails è anche sulla rete `timecly-edge` per essere servito da Caddy.
 - **FreeSWITCH 1.11.3** (`infra/freeswitch/`, immagine `safarov/freeswitch`, `network_mode: host`). Config generata sul NUC in `infra/freeswitch/conf/` da `setup.sh` (vanilla + patch: IP esterni `188.11.43.168`, codec PCMA/PCMU, RTP 20000-20999, ESL solo su 127.0.0.1 con password random, niente IPv6 né gateway di esempio, regole ufw). Mai nel repo (contiene password). Nessun pacchetto audio inglese scaricato (lento e inutile).
   - Profili: `internal` su `10.10.25.114:5060` (telefoni LAN, ufw solo da `10.10.25.0/24`, interni demo 1000-1019 con `default_password` del `.env`), `external` su `:5080` (trunk).
   - Comandi: `docker compose exec -T freeswitch fs_cli -p "$ESL_PASSWORD" -x "sofia status"`.
@@ -65,9 +65,9 @@ Nome: **Timecly**, dominio **timecly.it**. Verifica del marchio da fare: è simi
 - [x] Server messo in sicurezza (firewall, fail2ban, SSH) e Docker installato
 - [x] Reverse proxy Caddy con pagina provvisoria (solo locale)
 - [x] timecly.it su Cloudflare + tunnel attivo (pagina provvisoria visibile da internet con HTTPS)
-- [ ] Chatwoot pubblicato su `app.timecly.it` (dopo la creazione del super admin)
+- [x] Chatwoot pubblicato su `https://app.timecly.it` (onboarding chiuso, registrazioni disattivate, websocket ok)
 - [x] Chatwoot installato (solo LAN)
-- [ ] Account super admin Chatwoot (lo crea l'utente dalla pagina di benvenuto)
+- [x] Account super admin Chatwoot (creato dall'utente)
 - [x] FreeSWITCH installato + creazione trunk da modello (CLI)
 - [ ] pfSense: inoltro SIP/RTP verso il NUC
 - [ ] Primo trunk reale (VoipVoice o Messagenet) e chiamata di prova

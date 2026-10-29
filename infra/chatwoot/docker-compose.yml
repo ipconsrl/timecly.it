@@ -33,8 +33,10 @@ services:
     ports:
       - "${LAN_BIND:-127.0.0.1}:3000:3000"
     networks:
-      - default
-      - edge
+      default:
+      edge:
+        aliases:
+          - chatwoot
 
   sidekiq:
     <<: *chatwoot
