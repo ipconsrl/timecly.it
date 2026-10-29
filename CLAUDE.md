@@ -23,8 +23,16 @@ Problema che risolve: le app tipo Treatwell gestiscono l'agenda ma non telefono,
 
 ## Infrastruttura
 
-- **Sviluppo/demo**: NUC dedicato nell'ufficio, IP pubblico statico, Ubuntu Server 24.04 LTS, utente `timecly`, hostname `timecly-01`. IP locale: _da ricevere_.
-- Accesso: chiave SSH per postazione (questo PC: `~/.ssh/timecly_ed25519`, senza passphrase, da sostituire in produzione). Accesso remoto previsto via Tailscale, SSH non esposto su internet.
+- **Sviluppo/demo**: NUC dedicato nell'ufficio (IP pubblico statico dell'ufficio), hostname `timecly`, **IP LAN `10.10.25.114`** (gateway `10.10.25.254`).
+  - Hardware: x86_64, **2 core**, 7.6 GB RAM, SSD 500 GB (root LVM `ubuntu-vg-1/ubuntu-lv` estesa a ~455 GB). Swap file 4 GB.
+  - La eMMC interna (`mmcblk0`, VG `ubuntu-vg`) contiene una vecchia installazione: **non toccarla** senza chiedere.
+  - Ubuntu 24.04 LTS, fuso orario Europe/Rome, aggiornamenti automatici di sicurezza attivi.
+  - Utenti: `timecly` (usato da Claude, solo chiave SSH, sudo senza password, gruppo docker); `maint` (dell'utente, password ammessa solo dalla LAN).
+  - SSH: root disabilitato, password disabilitate tranne da `10.10.25.0/24` (`/etc/ssh/sshd_config.d/10-timecly.conf`). fail2ban attivo su sshd.
+  - Firewall ufw: aperte solo 22, 80, 443. Le porte SIP/RTP vanno aperte quando si installa il centralino.
+  - Docker 29 + Compose v5 ufficiali, log ruotati (10 MB × 3). **Attenzione: Docker scavalca ufw** per le porte pubblicate: pubblicare solo il reverse proxy, gli altri servizi su `127.0.0.1` o rete interna.
+  - Cartella dei servizi: `/opt/timecly` (proprietario `timecly`).
+- Connessione da questo PC: `ssh -i ~/.ssh/timecly_ed25519 timecly@10.10.25.114` (chiave senza passphrase, da sostituire in produzione). Accesso remoto previsto via Tailscale, SSH non esposto su internet.
 - **Produzione**: in un data center (non nell'ufficio) quando arrivano i primi clienti paganti.
 - Segreti: solo in `.env` sul server + copia nel password manager. Mai nel repository né in chat.
 
@@ -38,8 +46,9 @@ Nome: **Timecly**, dominio **timecly.it**. Verifica del marchio da fare: è simi
 - [x] Chiave SSH per il server
 - [x] Repository Git locale
 - [ ] Repository GitHub privato collegato
-- [ ] NUC installato e raggiungibile via SSH
-- [ ] Server messo in sicurezza (firewall, fail2ban, Docker, SSL)
+- [x] NUC installato e raggiungibile via SSH
+- [x] Server messo in sicurezza (firewall, fail2ban, SSH) e Docker installato
+- [ ] DNS di timecly.it verso l'IP pubblico + inoltro porte 80/443 sul router + SSL
 - [ ] Chatwoot + FreeSWITCH installati
 - [ ] Pannello con configurazione guidata
 - [ ] Flusso chiamata persa → WhatsApp funzionante (demo)
