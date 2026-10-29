@@ -1,0 +1,27 @@
+# Segreti: mai nel repository
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_*
+*_ed25519*
+
+# Dati runtime
+data/
+volumes/
+backups/
+*.log
+
+# Dipendenze e build
+node_modules/
+dist/
+build/
+.next/
+coverage/
+
+# Editor e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
