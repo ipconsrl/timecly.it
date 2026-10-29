@@ -13,6 +13,13 @@ services:
       - ./caddy/site:/srv/site:ro
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      - edge
+
+# Shared network: other stacks (chatwoot, panel…) join it so Caddy can reach them by name
+networks:
+  edge:
+    name: timecly-edge
 
 volumes:
   caddy_data:

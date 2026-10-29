@@ -1,0 +1,78 @@
+name: timecly-chatwoot
+
+# Chatwoot: unified inbox engine, driven by the Timecly panel through its APIs.
+# Requires the timecly-edge network (start infra/docker-compose.yml first).
+
+x-chatwoot: &chatwoot
+  image: chatwoot/chatwoot:${CHATWOOT_VERSION:-latest}
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    RAILS_ENV: production
+    NODE_ENV: production
+    INSTALLATION_ENV: docker
+    POSTGRES_HOST: postgres
+    POSTGRES_DATABASE: chatwoot
+    REDIS_URL: redis://redis:6379
+    ACTIVE_STORAGE_SERVICE: local
+    RAILS_LOG_TO_STDOUT: "true"
+  volumes:
+    - storage:/app/storage
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  rails:
+    <<: *chatwoot
+    entrypoint: docker/entrypoints/rails.sh
+    command: ["bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
+    # LAN only for now (pfSense does not forward this port). Later: served by Caddy through the tunnel.
+    ports:
+      - "${LAN_BIND:-127.0.0.1}:3000:3000"
+    networks:
+      - default
+      - edge
+
+  sidekiq:
+    <<: *chatwoot
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chatwoot
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d chatwoot"]
+      interval: 10s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["sh", "-c", "redis-server --requirepass \"$$REDIS_PASSWORD\""]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
+      interval: 10s
+      retries: 10
+
+networks:
+  edge:
+    name: timecly-edge
+    external: true
+
+volumes:
+  storage:
+  postgres:
+  redis:

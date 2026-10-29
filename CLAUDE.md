@@ -27,6 +27,8 @@ Problema che risolve: le app tipo Treatwell gestiscono l'agenda ma non telefono,
   - IP pubblico dell'ufficio: `188.11.43.168`. Firewall/router: **pfSense**. Le porte comuni (80/443 e altre) sono **già usate da altri servizi dell'ufficio**: non inoltrarle al NUC senza un sistema di instradamento per nome (HAProxy su pfSense o Cloudflare Tunnel).
   - **Pubblicazione web: Cloudflare Tunnel** (scelta 2026-10-29). DNS di timecly.it gestiti su Cloudflare (da attivare). `cloudflared` installato sul NUC da repo apt ufficiale, tunnel locally-managed (config in `/etc/cloudflared`, da creare dopo `cloudflared tunnel login`). Il tunnel inoltra a `http://127.0.0.1:8080` (Caddy).
   - Il SIP non passa dal tunnel: servirà un inoltro su pfSense con porte non standard, limitato agli IP dell'operatore VoIP.
+- **Chatwoot v4.19.1** (`infra/chatwoot/`, progetto compose `timecly-chatwoot`): rails, sidekiq, postgres (pgvector pg16), redis. Raggiungibile **solo in LAN** su `http://10.10.25.114:3000`. Segreti generati sul NUC in `/opt/timecly/infra/chatwoot/.env` (chmod 600, mai nel repo; modello in `.env.example`). Registrazioni pubbliche disattivate, lingua it. SMTP ancora da configurare. Consumo a riposo ~0.9 GB RAM, CPU quasi zero. Il rails è anche sulla rete `timecly-edge` per essere servito da Caddy.
+- Primo setup DB: `docker compose run --rm rails bundle exec rails db:chatwoot_prepare` (l'errore `installation_configs ... regclass` al primo avvio è normale).
 - **Deploy attuale**: `infra/` copiata in `/opt/timecly/infra` (via `tar | ssh`) e avviata con `docker compose up -d`. Caddy serve la pagina provvisoria su `127.0.0.1:8080`. In futuro: deploy key GitHub sul NUC e `git pull`.
 - Repository: `https://github.com/ipconsrl/timecly.it.git` (privato, branch `main`).
   - Hardware: x86_64, **2 core**, 7.6 GB RAM, SSD 500 GB (root LVM `ubuntu-vg-1/ubuntu-lv` estesa a ~455 GB). Swap file 4 GB.
@@ -55,7 +57,9 @@ Nome: **Timecly**, dominio **timecly.it**. Verifica del marchio da fare: è simi
 - [x] Server messo in sicurezza (firewall, fail2ban, SSH) e Docker installato
 - [x] Reverse proxy Caddy con pagina provvisoria (solo locale)
 - [ ] timecly.it su Cloudflare + tunnel attivo (pagina visibile da internet)
-- [ ] Chatwoot + FreeSWITCH installati
+- [x] Chatwoot installato (solo LAN)
+- [ ] Account super admin Chatwoot (lo crea l'utente dalla pagina di benvenuto)
+- [ ] FreeSWITCH installato
 - [ ] Pannello con configurazione guidata
 - [ ] Flusso chiamata persa → WhatsApp funzionante (demo)
 - [ ] Agente vocale AI

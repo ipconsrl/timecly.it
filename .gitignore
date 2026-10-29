@@ -20,6 +20,9 @@ build/
 .next/
 coverage/
 
+# Impostazioni personali di Claude Code
+.claude/settings.local.json
+
 # Editor e sistema
 .vscode/
 .idea/
