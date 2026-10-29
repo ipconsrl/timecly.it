@@ -1,0 +1,25 @@
+name: timecly-freeswitch
+
+# FreeSWITCH PBX engine. Host networking: SIP/RTP behind Docker NAT is unreliable,
+# and with host networking ufw rules apply normally.
+# Run ./setup.sh before the first start (creates and patches ./conf).
+
+services:
+  freeswitch:
+    image: safarov/freeswitch:${FREESWITCH_VERSION:-latest}
+    restart: unless-stopped
+    network_mode: host
+    # No SOUND_RATES/SOUND_TYPES: the stock English prompts are not needed
+    # (Italian prompts come from our TTS) and the download takes ~20 minutes.
+    volumes:
+      - ./conf:/etc/freeswitch
+      - sounds:/usr/share/freeswitch/sounds
+      - recordings:/var/lib/freeswitch/recordings
+      - storage:/var/lib/freeswitch/storage
+      - logs:/var/log/freeswitch
+
+volumes:
+  sounds:
+  recordings:
+  storage:
+  logs:

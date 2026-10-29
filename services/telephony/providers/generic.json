@@ -1,0 +1,16 @@
+{
+  "id": "generic",
+  "name": "SIP generico",
+  "country": "IT",
+  "auth": "register",
+  "registrar": null,
+  "proxy": null,
+  "port": 5060,
+  "transport": "udp",
+  "expire_seconds": 600,
+  "ping_seconds": 30,
+  "codecs": ["PCMA", "PCMU"],
+  "fields": ["registrar", "username", "auth_username", "password", "number"],
+  "verified": true,
+  "notes": "Per qualsiasi operatore con registrazione utente/password."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "messagenet",
+  "name": "Messagenet",
+  "country": "IT",
+  "auth": "register",
+  "registrar": "sip.messagenet.it",
+  "proxy": null,
+  "port": 5060,
+  "transport": "udp",
+  "expire_seconds": 600,
+  "ping_seconds": 30,
+  "codecs": ["PCMA", "PCMU"],
+  "fields": ["username", "password", "number"],
+  "verified": false,
+  "notes": "Server da confermare con i dati SIP del pannello Messagenet. Numero principale in formato nazionale (es. 0597353000)."
+}
