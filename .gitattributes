@@ -1,0 +1,6 @@
+# Files run on the Linux server: always LF
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary

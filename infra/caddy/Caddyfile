@@ -1,0 +1,11 @@
+{
+	# TLS is handled by Cloudflare at the edge
+	auto_https off
+	admin off
+}
+
+:80 {
+	header -Server
+	root * /srv/site
+	file_server
+}

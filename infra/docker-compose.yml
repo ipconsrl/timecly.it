@@ -1,0 +1,19 @@
+name: timecly
+
+services:
+  # Internal reverse proxy: Cloudflare Tunnel terminates TLS and forwards
+  # plain HTTP to 127.0.0.1:8080. Never publish ports on 0.0.0.0 (Docker bypasses ufw).
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/site:/srv/site:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

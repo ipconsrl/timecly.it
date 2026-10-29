@@ -23,7 +23,12 @@ Problema che risolve: le app tipo Treatwell gestiscono l'agenda ma non telefono,
 
 ## Infrastruttura
 
-- **Sviluppo/demo**: NUC dedicato nell'ufficio (IP pubblico statico dell'ufficio), hostname `timecly`, **IP LAN `10.10.25.114`** (gateway `10.10.25.254`).
+- **Sviluppo/demo**: NUC dedicato nell'ufficio, hostname `timecly`, **IP LAN `10.10.25.114`** (gateway `10.10.25.254`).
+  - IP pubblico dell'ufficio: `188.11.43.168`. Firewall/router: **pfSense**. Le porte comuni (80/443 e altre) sono **già usate da altri servizi dell'ufficio**: non inoltrarle al NUC senza un sistema di instradamento per nome (HAProxy su pfSense o Cloudflare Tunnel).
+  - **Pubblicazione web: Cloudflare Tunnel** (scelta 2026-10-29). DNS di timecly.it gestiti su Cloudflare (da attivare). `cloudflared` installato sul NUC da repo apt ufficiale, tunnel locally-managed (config in `/etc/cloudflared`, da creare dopo `cloudflared tunnel login`). Il tunnel inoltra a `http://127.0.0.1:8080` (Caddy).
+  - Il SIP non passa dal tunnel: servirà un inoltro su pfSense con porte non standard, limitato agli IP dell'operatore VoIP.
+- **Deploy attuale**: `infra/` copiata in `/opt/timecly/infra` (via `tar | ssh`) e avviata con `docker compose up -d`. Caddy serve la pagina provvisoria su `127.0.0.1:8080`. In futuro: deploy key GitHub sul NUC e `git pull`.
+- Repository: `https://github.com/ipconsrl/timecly.it.git` (privato, branch `main`).
   - Hardware: x86_64, **2 core**, 7.6 GB RAM, SSD 500 GB (root LVM `ubuntu-vg-1/ubuntu-lv` estesa a ~455 GB). Swap file 4 GB.
   - La eMMC interna (`mmcblk0`, VG `ubuntu-vg`) contiene una vecchia installazione: **non toccarla** senza chiedere.
   - Ubuntu 24.04 LTS, fuso orario Europe/Rome, aggiornamenti automatici di sicurezza attivi.
@@ -45,10 +50,11 @@ Nome: **Timecly**, dominio **timecly.it**. Verifica del marchio da fare: è simi
 - [x] Nome e dominio
 - [x] Chiave SSH per il server
 - [x] Repository Git locale
-- [ ] Repository GitHub privato collegato
+- [x] Repository GitHub privato collegato
 - [x] NUC installato e raggiungibile via SSH
 - [x] Server messo in sicurezza (firewall, fail2ban, SSH) e Docker installato
-- [ ] DNS di timecly.it verso l'IP pubblico + inoltro porte 80/443 sul router + SSL
+- [x] Reverse proxy Caddy con pagina provvisoria (solo locale)
+- [ ] timecly.it su Cloudflare + tunnel attivo (pagina visibile da internet)
 - [ ] Chatwoot + FreeSWITCH installati
 - [ ] Pannello con configurazione guidata
 - [ ] Flusso chiamata persa → WhatsApp funzionante (demo)
